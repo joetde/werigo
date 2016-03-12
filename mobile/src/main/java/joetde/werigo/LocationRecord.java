@@ -111,10 +111,10 @@ public class LocationRecord {
 
     /**
      * Get alpha to display from the accuracy
-     * @return aplha color
+     * @return alpha color
      */
     private int getAlpha() {
-        return (int)(60 + 125 * (getAccuracy()/MIN_ACCURACY_TO_RECORD));
+        return (int)(60 + 125 * (1-getAccuracy()/MIN_ACCURACY_TO_RECORD));
     }
 
     /**
