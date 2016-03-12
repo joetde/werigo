@@ -1,0 +1,12 @@
+*.iml
+*.pro
+*.bat
+.gradle
+/gradle
+gradlew
+/local.properties
+/.idea
+build
+debug
+release
+google_maps_api.xml
