@@ -1,6 +1,5 @@
 package joetde.werigo;
 
-import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -11,6 +10,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -25,13 +25,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LocationMerger locationMerger = new LocationMerger();
     private boolean isFirstLocation = true;
 
+    private static final LatLng NULL_LATLNG = new LatLng(0,0);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        locationMerger.setContext(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        locationMerger.load();
         setLocationListener();
     }
 
@@ -60,12 +64,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             LatLng ll = new LatLng(loc.getLatitude(), loc.getLongitude());
             if (isFirstLocation) {
                 map.moveCamera(CameraUpdateFactory.newLatLngZoom(ll, 16));
+                for (LocationRecord lr : locationMerger.getLocations()) {
+                    lr.setCircle(map.addCircle(createCircle()));
+                }
                 isFirstLocation = false;
             }
             if (loc.getAccuracy() < MIN_ACCURACY_TO_RECORD) {
                 if (locationMerger.addLocationToMerge(loc)) {
                     log.error("Add new point: {}", loc);
-                    locationMerger.addCircleToLastLocation(map.addCircle(createCircle(ll, loc.getAccuracy())));
+                    locationMerger.addCircleToLastLocation(map.addCircle(createCircle()));
                 }
             } else {
                 log.debug("Skipping point because of bad accuracy.");
@@ -79,9 +86,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         map.setMyLocationEnabled(true);
     }
 
-    private CircleOptions createCircle(LatLng latLng, float radius) {
+    private CircleOptions createCircle() {
         CircleOptions circle = new CircleOptions();
-        circle.center(latLng);
+        circle.center(NULL_LATLNG);
         circle.strokeWidth(0);
         circle.visible(true);
         return circle;
