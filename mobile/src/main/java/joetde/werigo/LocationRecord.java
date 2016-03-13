@@ -49,6 +49,7 @@ public class LocationRecord {
     public void merge(LocationRecord lr) {
         log.debug("Merging");
         improveAccuracy(lr);
+        timestamp = lr.getTimestamp();
         merges++;
     }
 
