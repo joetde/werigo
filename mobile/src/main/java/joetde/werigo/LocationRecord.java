@@ -122,7 +122,7 @@ public class LocationRecord {
      * @return color of the point
      */
     private int getColor() {
-        int colorSet = 0;
+        int colorSet = Math.min(merges, 4);
         return Color.argb(getAlpha(), LOCATION_HEAT_RGB[colorSet][0], LOCATION_HEAT_RGB[colorSet][1], LOCATION_HEAT_RGB[colorSet][2]);
     }
 }
