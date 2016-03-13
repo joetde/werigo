@@ -35,7 +35,6 @@ public class LocationMerger {
         LocationRecord closestRecordInRange = getClosestRecordsInRange(newRecord);
         if (closestRecordInRange != null) {
             if (closestRecordInRange.delay(newRecord) < SIMILIRARITY_IN_TIME) {
-                log.error("Deduping");
                 closestRecordInRange.dedupe(newRecord);
                 return false;
             } else {
