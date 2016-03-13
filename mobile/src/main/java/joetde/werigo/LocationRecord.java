@@ -18,7 +18,7 @@ public class LocationRecord {
     private double longitude;
     private double accuracy;
     private long timestamp;
-    private Circle circle = null;
+    private transient Circle circle = null;
     private int merges = 0;
 
     public LocationRecord(double latitude, double longitude, double accuracy, long timestamp) {

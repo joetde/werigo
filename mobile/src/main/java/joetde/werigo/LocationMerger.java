@@ -96,8 +96,10 @@ public class LocationMerger {
             fis.read(buffer);
             fis.close();
             String json = new String(buffer);
-            log.error(json);
-            locations = SERILIZER.fromJson(json, new TypeToken<List<LocationRecord>>(){}.getType());
+            if (json != null && !json.isEmpty()) {
+                locations = SERILIZER.fromJson(json, new TypeToken<ArrayList<LocationRecord>>() {}.getType());
+                log.error("Location size: " + locations.size());
+            }
         } catch (FileNotFoundException e) {
             // TODO create the file
             log.error("File not found", e);
