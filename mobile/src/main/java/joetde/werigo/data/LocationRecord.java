@@ -1,31 +1,41 @@
-package joetde.werigo;
+package joetde.werigo.data;
 
 import android.graphics.Color;
 
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.LatLng;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import static joetde.werigo.Constants.*;
+import static joetde.werigo.Constants.LOCATION_HEAT_RGB;
+import static joetde.werigo.Constants.MIN_ACCURACY_TO_RECORD;
+import static joetde.werigo.Constants.MIN_DISLAY_RADIUS;
 
 @Data
 @Slf4j
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class LocationRecord {
 
+    private long id;
     private double latitude;
     private double longitude;
     private double accuracy;
     private long timestamp;
-    private transient Circle circle = null;
     private int merges = 0;
+    private transient Circle circle = null;
 
     public LocationRecord(double latitude, double longitude, double accuracy, long timestamp) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.accuracy = accuracy;
         this.timestamp = timestamp;
+    }
+
+    public LocationRecord(long id, double latitude, double longitude, double accuracy, long timestamp, int merges) {
+        this(id, latitude, longitude, accuracy, timestamp, merges, null);
     }
 
     public void setCircle(Circle circle) {
