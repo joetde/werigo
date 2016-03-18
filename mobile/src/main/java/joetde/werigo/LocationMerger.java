@@ -38,9 +38,11 @@ public class LocationMerger {
         if (closestRecordInRange != null) {
             if (closestRecordInRange.delay(newRecord) < SIMILIRARITY_IN_TIME) {
                 closestRecordInRange.dedupe(newRecord);
+                dataSource.updateLocation(closestRecordInRange);
                 return false;
             } else {
                 closestRecordInRange.merge(newRecord);
+                dataSource.updateLocation(closestRecordInRange);
                 return false;
             }
         }

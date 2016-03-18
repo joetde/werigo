@@ -38,7 +38,7 @@ public class LocationRecordDataSource extends SQLiteOpenHelper {
     }
 
     public void writeNewLocation(LocationRecord lr) {
-        log.debug("Writing location: " + lr);
+        log.debug("Writing location: {}", lr);
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(LocationRecordEntry.COLUMN_NAME_LATITUDE, lr.getLatitude());
@@ -51,7 +51,16 @@ public class LocationRecordDataSource extends SQLiteOpenHelper {
     }
 
     public void updateLocation(LocationRecord lr) {
-
+        log.debug("Updating location: {}", lr);
+        SQLiteDatabase db = getReadableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(LocationRecordEntry.COLUMN_NAME_LATITUDE, lr.getLatitude());
+        values.put(LocationRecordEntry.COLUMN_NAME_LONGITUDE, lr.getLongitude());
+        values.put(LocationRecordEntry.COLUMN_NAME_ACCURACY, lr.getAccuracy());
+        values.put(LocationRecordEntry.COLUMN_NAME_TIMESTAMP, lr.getTimestamp());
+        values.put(LocationRecordEntry.COLUMN_NAME_MERGES, lr.getMerges());
+        String idFilter = "_id = " + lr.getId();
+        db.update(LocationRecordEntry.TABLE_NAME, values, idFilter, null);
     }
 
     public List<LocationRecord> loadLocations(LatLngBounds bounds) {
