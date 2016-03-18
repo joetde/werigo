@@ -3,14 +3,19 @@ package joetde.werigo;
 import android.content.Context;
 import android.location.Location;
 
-import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import joetde.werigo.data.LocationRecord;
 import joetde.werigo.datasource.LocationRecordDataSource;
+import joetde.werigo.display.CircleCreator;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import static joetde.werigo.Constants.SIMILARITY_IN_SPACE;
@@ -19,10 +24,12 @@ import static joetde.werigo.Constants.SIMILIRARITY_IN_TIME;
 @Slf4j
 public class LocationMerger {
     private Context context;
+    @Setter private CircleCreator circleCreator;
     private LocationRecordDataSource dataSource;
-    @Getter private List<LocationRecord> locations = new ArrayList<>();
+    @Getter private Map<Long, LocationRecord> locations = new HashMap<>();
 
     public boolean addLocationToMerge(Location location) {
+
         LocationRecord newRecord = new LocationRecord(location.getLatitude(),
                 location.getLongitude(), location.getAccuracy(), System.currentTimeMillis());
 
@@ -37,8 +44,9 @@ public class LocationMerger {
             }
         }
 
-        locations.add(newRecord);
         dataSource.writeNewLocation(newRecord);
+        locations.put(newRecord.getId(), newRecord);
+        newRecord.setCircle(circleCreator.createAndSetCircle());
         return true;
     }
 
@@ -51,7 +59,7 @@ public class LocationMerger {
     private LocationRecord getClosestRecordsInRange(LocationRecord lr) {
         LocationRecord closestRecordInRange = null;
         double minDistance = SIMILARITY_IN_SPACE;
-        for (LocationRecord record : locations) {
+        for (LocationRecord record : locations.values()) {
             double currentDistance = record.distance(lr);
             if (currentDistance < minDistance) {
                 minDistance = currentDistance;
@@ -61,16 +69,27 @@ public class LocationMerger {
         return closestRecordInRange;
     }
 
-    public void addCircleToLastLocation(Circle circle) {
-        locations.get(locations.size()-1).setCircle(circle);
-    }
-
     public void setContextAndLoadDataSource(Context context) {
         this.context = context;
         this.dataSource = new LocationRecordDataSource(context);
     }
 
-    public void load() {
-        locations = dataSource.loadLocations();
+    public void refreshLocations(LatLngBounds bounds) {
+        if (context != null) {
+            for (Iterator<Map.Entry<Long, LocationRecord>> it = locations.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry<Long, LocationRecord> entry = it.next();
+                if (!bounds.contains(new LatLng(entry.getValue().getLatitude(), entry.getValue().getLongitude()))) {
+                    entry.getValue().getCircle().remove();
+                    it.remove();
+                }
+            }
+            List<LocationRecord> newLocations = dataSource.loadLocations(bounds);
+            for (LocationRecord lr : newLocations) {
+                if (!locations.containsKey(lr.getId())) {
+                    lr.setCircle(circleCreator.createAndSetCircle());
+                    locations.put(lr.getId(), lr);
+                }
+            }
+        }
     }
 }

@@ -10,18 +10,23 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 
 import joetde.werigo.data.LocationRecord;
+import joetde.werigo.display.CircleCreator;
 import lombok.extern.slf4j.Slf4j;
 
 import static joetde.werigo.Constants.*;
 
 @Slf4j
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnCameraChangeListener, CircleCreator {
 
     private GoogleMap map;
+    private LatLngBounds cameraBounds;
     private LocationMerger locationMerger = new LocationMerger();
     private boolean isFirstLocation = true;
 
@@ -34,13 +39,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // configure location engine
         locationMerger.setContextAndLoadDataSource(this);
+        locationMerger.setCircleCreator(this);
 
         // set UI
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        locationMerger.load();
         setLocationListener();
     }
 
@@ -69,15 +74,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             LatLng ll = new LatLng(loc.getLatitude(), loc.getLongitude());
             if (isFirstLocation) {
                 map.moveCamera(CameraUpdateFactory.newLatLngZoom(ll, 16));
-                for (LocationRecord lr : locationMerger.getLocations()) {
-                    lr.setCircle(map.addCircle(createCircle()));
-                }
                 isFirstLocation = false;
             }
-            if (loc.getAccuracy() < MIN_ACCURACY_TO_RECORD) {
+            // Only record point that is in the screen
+            if (loc.getAccuracy() < MIN_ACCURACY_TO_RECORD && cameraBounds.contains(ll)) {
                 if (locationMerger.addLocationToMerge(loc)) {
                     log.error("Add new point: {}", loc);
-                    locationMerger.addCircleToLastLocation(map.addCircle(createCircle()));
                 }
             } else {
                 log.debug("Skipping point because of bad accuracy.");
@@ -86,9 +88,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
+    public void onCameraChange(CameraPosition position) {
+        LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
+        cameraBounds = bounds;
+        locationMerger.refreshLocations(bounds);
+    }
+
+    @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
+        map.setOnCameraChangeListener(this);
         map.setMyLocationEnabled(true);
+    }
+
+    public Circle createAndSetCircle() {
+        return map.addCircle(createCircle());
     }
 
     private CircleOptions createCircle() {

@@ -7,6 +7,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
 
+import com.google.android.gms.maps.model.LatLngBounds;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,8 +54,7 @@ public class LocationRecordDataSource extends SQLiteOpenHelper {
 
     }
 
-    // TODO load only in area
-    public List<LocationRecord> loadLocations() {
+    public List<LocationRecord> loadLocations(LatLngBounds bounds) {
         List<LocationRecord> locations = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
         String[] allArgs = {LocationRecordEntry._ID,
@@ -63,7 +64,13 @@ public class LocationRecordDataSource extends SQLiteOpenHelper {
                             LocationRecordEntry.COLUMN_NAME_TIMESTAMP,
                             LocationRecordEntry.COLUMN_NAME_MERGES};
         Cursor c = db.query(LocationRecordEntry.TABLE_NAME,
-                            allArgs, null, null, null, null, null);
+                            allArgs,
+                            QueryUtils.WHERE_IN_BOUNDS,
+                            new String[] {Double.toString(bounds.southwest.latitude),
+                                          Double.toString(bounds.northeast.latitude),
+                                          Double.toString(bounds.southwest.longitude),
+                                          Double.toString(bounds.northeast.longitude)},
+                            null, null, null);
         if (c.moveToFirst()) {
             do {
                 LocationRecord lr = new LocationRecord(c.getLong(0), c.getDouble(1), c.getDouble(2), c.getDouble(3), c.getLong(4), c.getInt(5));
@@ -95,5 +102,10 @@ public class LocationRecordDataSource extends SQLiteOpenHelper {
                 "CREATE INDEX coordinate_index ON " + LocationRecordEntry.TABLE_NAME + " " +
                 "("+ LocationRecordEntry.COLUMN_NAME_LATITUDE + ", " + LocationRecordEntry.COLUMN_NAME_LONGITUDE + ");";
         public static final String DROP_TABLE_QUERY = "DROP TABLE " + LocationRecordEntry.TABLE_NAME + ";";
+        // note will probably do something funny at extreme latlng
+        public static final String WHERE_IN_BOUNDS = LocationRecordEntry.COLUMN_NAME_LATITUDE + " > ? AND " +
+                                                     LocationRecordEntry.COLUMN_NAME_LATITUDE + " < ? AND " +
+                                                     LocationRecordEntry.COLUMN_NAME_LONGITUDE + " > ? AND " +
+                                                     LocationRecordEntry.COLUMN_NAME_LONGITUDE + " < ?";
     }
 }
