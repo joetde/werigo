@@ -4,6 +4,7 @@ import android.graphics.Color;
 
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -13,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import static joetde.werigo.Constants.LOCATION_HEAT_RGB;
 import static joetde.werigo.Constants.MIN_ACCURACY_TO_RECORD;
 import static joetde.werigo.Constants.MIN_DISLAY_RADIUS;
+import static joetde.werigo.Constants.SIMILARITY_IN_SPACE_DEGREE;
 
 @Data
 @Slf4j
@@ -99,6 +101,12 @@ public class LocationRecord {
      */
     public long delay(LocationRecord lr) {
         return Math.abs(timestamp - lr.getTimestamp());
+    }
+
+    public LatLngBounds getBounds() {
+        LatLng one = new LatLng(latitude + SIMILARITY_IN_SPACE_DEGREE, longitude + SIMILARITY_IN_SPACE_DEGREE);
+        LatLng two = new LatLng(latitude - SIMILARITY_IN_SPACE_DEGREE, longitude - SIMILARITY_IN_SPACE_DEGREE);
+        return LatLngBounds.builder().include(one).include(two).build();
     }
 
     /**

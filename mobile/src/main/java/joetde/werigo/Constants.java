@@ -7,6 +7,7 @@ public class Constants {
 
     public static final int SIMILIRARITY_IN_TIME = 12 * 60* 60 * 1000; // 12 hours in ms
     public static final int SIMILARITY_IN_SPACE = 20; // meters
+    public static final double SIMILARITY_IN_SPACE_DEGREE = SIMILARITY_IN_SPACE / 111.19492664455873;
 
     public static final double MIN_DISLAY_RADIUS = 20; // meters
 

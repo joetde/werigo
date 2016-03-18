@@ -77,7 +77,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 isFirstLocation = false;
             }
             // Only record point that is in the screen
-            if (loc.getAccuracy() < MIN_ACCURACY_TO_RECORD && cameraBounds.contains(ll)) {
+            if (loc.getAccuracy() < MIN_ACCURACY_TO_RECORD) {
                 if (locationMerger.addLocationToMerge(loc)) {
                     log.error("Add new point: {}", loc);
                 }

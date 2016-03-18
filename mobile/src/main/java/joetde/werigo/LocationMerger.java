@@ -33,7 +33,8 @@ public class LocationMerger {
         LocationRecord newRecord = new LocationRecord(location.getLatitude(),
                 location.getLongitude(), location.getAccuracy(), System.currentTimeMillis());
 
-        LocationRecord closestRecordInRange = getClosestRecordsInRange(newRecord);
+        List<LocationRecord> locationsInRange = dataSource.loadLocations(newRecord.getBounds());
+        LocationRecord closestRecordInRange = getClosestRecordsInRange(locationsInRange, newRecord);
         if (closestRecordInRange != null) {
             if (closestRecordInRange.delay(newRecord) < SIMILIRARITY_IN_TIME) {
                 closestRecordInRange.dedupe(newRecord);
@@ -56,10 +57,10 @@ public class LocationMerger {
      * @param lr
      * @return list of points in range
      */
-    private LocationRecord getClosestRecordsInRange(LocationRecord lr) {
+    private static LocationRecord getClosestRecordsInRange(List<LocationRecord> locations, LocationRecord lr) {
         LocationRecord closestRecordInRange = null;
         double minDistance = SIMILARITY_IN_SPACE;
-        for (LocationRecord record : locations.values()) {
+        for (LocationRecord record : locations) {
             double currentDistance = record.distance(lr);
             if (currentDistance < minDistance) {
                 minDistance = currentDistance;
