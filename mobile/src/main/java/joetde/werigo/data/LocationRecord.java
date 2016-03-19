@@ -81,9 +81,11 @@ public class LocationRecord {
     }
 
     private void refreshDisplay() {
-        circle.setCenter(new LatLng(latitude, longitude));
-        circle.setRadius(accuracy < MIN_DISLAY_RADIUS ? MIN_DISLAY_RADIUS : accuracy);
-        circle.setFillColor(getColor());
+        if (circle != null) {
+            circle.setCenter(new LatLng(latitude, longitude));
+            circle.setRadius(accuracy < MIN_DISLAY_RADIUS ? MIN_DISLAY_RADIUS : accuracy);
+            circle.setFillColor(getColor());
+        }
     }
 
     /**
@@ -105,8 +107,8 @@ public class LocationRecord {
     }
 
     public LatLngBounds getBounds() {
-        LatLng one = new LatLng(latitude + SIMILARITY_IN_SPACE_DEGREE, longitude + SIMILARITY_IN_SPACE_DEGREE);
-        LatLng two = new LatLng(latitude - SIMILARITY_IN_SPACE_DEGREE, longitude - SIMILARITY_IN_SPACE_DEGREE);
+        LatLng one = new LatLng(latitude + 2 * SIMILARITY_IN_SPACE_DEGREE, longitude + 2 * SIMILARITY_IN_SPACE_DEGREE);
+        LatLng two = new LatLng(latitude - 2 * SIMILARITY_IN_SPACE_DEGREE, longitude - 2 * SIMILARITY_IN_SPACE_DEGREE);
         return LatLngBounds.builder().include(one).include(two).build();
     }
 

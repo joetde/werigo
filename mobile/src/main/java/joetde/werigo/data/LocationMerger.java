@@ -85,6 +85,7 @@ public class LocationMerger {
                     it.remove();
                 }
             }
+
             List<LocationRecord> newLocations = dataSource.loadLocations(bounds);
             for (LocationRecord lr : newLocations) {
                 if (!locations.containsKey(lr.getId())) {

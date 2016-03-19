@@ -3,6 +3,7 @@ package joetde.werigo.datasource;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
@@ -90,6 +91,16 @@ public class LocationRecordDataSource extends SQLiteOpenHelper {
         return locations;
     }
 
+    public long countLocations(LatLngBounds bounds) {
+        SQLiteDatabase db = getReadableDatabase();
+        return DatabaseUtils.queryNumEntries(db, LocationRecordEntry.TABLE_NAME,
+                QueryUtils.WHERE_IN_BOUNDS,
+                new String[]{Double.toString(bounds.southwest.latitude),
+                             Double.toString(bounds.northeast.latitude),
+                             Double.toString(bounds.southwest.longitude),
+                             Double.toString(bounds.northeast.longitude)});
+    }
+
     private static abstract class LocationRecordEntry implements BaseColumns {
         public static final String TABLE_NAME = "LocationRecords";
         public static final String COLUMN_NAME_LATITUDE = "latitude";
@@ -111,10 +122,10 @@ public class LocationRecordDataSource extends SQLiteOpenHelper {
                 "CREATE INDEX coordinate_index ON " + LocationRecordEntry.TABLE_NAME + " " +
                 "("+ LocationRecordEntry.COLUMN_NAME_LATITUDE + ", " + LocationRecordEntry.COLUMN_NAME_LONGITUDE + ");";
         public static final String DROP_TABLE_QUERY = "DROP TABLE " + LocationRecordEntry.TABLE_NAME + ";";
-        // note will probably do something funny at extreme latlng
+        // note: will probably do something funny at extreme latlng
         public static final String WHERE_IN_BOUNDS = LocationRecordEntry.COLUMN_NAME_LATITUDE + " > ? AND " +
                                                      LocationRecordEntry.COLUMN_NAME_LATITUDE + " < ? AND " +
                                                      LocationRecordEntry.COLUMN_NAME_LONGITUDE + " > ? AND " +
-                                                     LocationRecordEntry.COLUMN_NAME_LONGITUDE + " < ?";
+                                                     LocationRecordEntry.COLUMN_NAME_LONGITUDE + " < ? ";
     }
 }
