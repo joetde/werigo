@@ -16,7 +16,7 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 
-import joetde.werigo.data.LocationRecord;
+import joetde.werigo.data.LocationMerger;
 import joetde.werigo.display.CircleCreator;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,7 +26,6 @@ import static joetde.werigo.Constants.*;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnCameraChangeListener, CircleCreator {
 
     private GoogleMap map;
-    private LatLngBounds cameraBounds;
     private LocationMerger locationMerger = new LocationMerger();
     private boolean isFirstLocation = true;
 
@@ -90,8 +89,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onCameraChange(CameraPosition position) {
         LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
-        cameraBounds = bounds;
-        locationMerger.refreshLocations(bounds);
+        locationMerger.refreshLocations(bounds, position.zoom);
     }
 
     @Override

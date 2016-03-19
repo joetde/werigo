@@ -52,6 +52,7 @@ public class LocationRecord {
     public void dedupe(LocationRecord lr) {
         log.debug("Deduping");
         improveAccuracy(lr);
+        refreshDisplay();
     }
 
     /**
@@ -63,6 +64,7 @@ public class LocationRecord {
         improveAccuracy(lr);
         timestamp = lr.getTimestamp();
         merges++;
+        refreshDisplay();
     }
 
     /**
@@ -75,7 +77,6 @@ public class LocationRecord {
             accuracy = lr.getAccuracy();
             latitude = (latitude + lr.getLatitude()) / 2;
             longitude = (longitude + lr.getLongitude()) / 2;
-            refreshDisplay();
         }
     }
 

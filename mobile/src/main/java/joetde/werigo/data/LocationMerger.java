@@ -1,4 +1,4 @@
-package joetde.werigo;
+package joetde.werigo.data;
 
 import android.content.Context;
 import android.location.Location;
@@ -11,7 +11,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import joetde.werigo.data.LocationRecord;
 import joetde.werigo.datasource.LocationRecordDataSource;
 import joetde.werigo.display.CircleCreator;
 import lombok.Getter;
@@ -77,7 +76,7 @@ public class LocationMerger {
         this.dataSource = new LocationRecordDataSource(context);
     }
 
-    public void refreshLocations(LatLngBounds bounds) {
+    public void refreshLocations(LatLngBounds bounds, float zoom) {
         if (context != null) {
             for (Iterator<Map.Entry<Long, LocationRecord>> it = locations.entrySet().iterator(); it.hasNext(); ) {
                 Map.Entry<Long, LocationRecord> entry = it.next();
