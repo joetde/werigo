@@ -18,6 +18,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 
 import joetde.werigo.data.LocationMerger;
 import joetde.werigo.display.CircleCreator;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import static joetde.werigo.Constants.*;
@@ -25,6 +26,7 @@ import static joetde.werigo.Constants.*;
 @Slf4j
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnCameraChangeListener, CircleCreator {
 
+    @Getter private LatLngBounds cameraBounds;
     private GoogleMap map;
     private LocationMerger locationMerger = new LocationMerger();
     private boolean isFirstLocation = true;
@@ -38,7 +40,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // configure location engine
         locationMerger.setContextAndLoadDataSource(this);
-        locationMerger.setCircleCreator(this);
 
         // set UI
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -78,7 +79,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // Only record point that is in the screen
             if (loc.getAccuracy() < MIN_ACCURACY_TO_RECORD) {
                 if (locationMerger.addLocationToMerge(loc)) {
-                    log.error("Add new point: {}", loc);
+                    log.debug("Add new point: {}", loc);
                 }
             } else {
                 log.debug("Skipping point because of bad accuracy.");
@@ -88,8 +89,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onCameraChange(CameraPosition position) {
-        LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
-        locationMerger.refreshLocations(bounds, position.zoom);
+        cameraBounds = map.getProjection().getVisibleRegion().latLngBounds;
+        locationMerger.refreshLocations(cameraBounds, position.zoom);
     }
 
     @Override

@@ -1,6 +1,5 @@
 package joetde.werigo.data;
 
-import android.content.Context;
 import android.location.Location;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -11,10 +10,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import joetde.werigo.MapsActivity;
 import joetde.werigo.datasource.LocationRecordDataSource;
-import joetde.werigo.display.CircleCreator;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import static joetde.werigo.Constants.SIMILARITY_IN_SPACE;
@@ -22,10 +19,10 @@ import static joetde.werigo.Constants.SIMILIRARITY_IN_TIME;
 
 @Slf4j
 public class LocationMerger {
-    private Context context;
-    @Setter private CircleCreator circleCreator;
+    private MapsActivity context;
     private LocationRecordDataSource dataSource;
-    @Getter private Map<Long, LocationRecord> locations = new HashMap<>();
+    private Map<Long, LocationRecord> locations = new HashMap<>(); // id -> location
+    private AggregationManager aggregationManager = new AggregationManager();
 
     public boolean addLocationToMerge(Location location) {
 
@@ -48,7 +45,7 @@ public class LocationMerger {
 
         dataSource.writeNewLocation(newRecord);
         locations.put(newRecord.getId(), newRecord);
-        newRecord.setCircle(circleCreator.createAndSetCircle());
+        aggregationManager.add(newRecord, context);
         return true;
     }
 
@@ -71,25 +68,31 @@ public class LocationMerger {
         return closestRecordInRange;
     }
 
-    public void setContextAndLoadDataSource(Context context) {
+    public void setContextAndLoadDataSource(MapsActivity context) {
         this.context = context;
         this.dataSource = new LocationRecordDataSource(context);
     }
 
     public void refreshLocations(LatLngBounds bounds, float zoom) {
         if (context != null) {
+            aggregationManager.updateZoom(zoom);
+
+            // remove points outside screen
             for (Iterator<Map.Entry<Long, LocationRecord>> it = locations.entrySet().iterator(); it.hasNext(); ) {
                 Map.Entry<Long, LocationRecord> entry = it.next();
                 if (!bounds.contains(new LatLng(entry.getValue().getLatitude(), entry.getValue().getLongitude()))) {
-                    entry.getValue().getCircle().remove();
+                    //entry.getValue().getCircle().remove();
+                    aggregationManager.remove(entry.getValue());
                     it.remove();
                 }
             }
 
+            // add new points
             List<LocationRecord> newLocations = dataSource.loadLocations(bounds);
             for (LocationRecord lr : newLocations) {
                 if (!locations.containsKey(lr.getId())) {
-                    lr.setCircle(circleCreator.createAndSetCircle());
+                    //lr.setCircle(context.createAndSetCircle());
+                    aggregationManager.add(lr, context);
                     locations.put(lr.getId(), lr);
                 }
             }
