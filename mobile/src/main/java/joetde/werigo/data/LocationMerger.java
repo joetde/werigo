@@ -75,7 +75,7 @@ public class LocationMerger {
 
     public void refreshLocations(LatLngBounds bounds, float zoom) {
         if (context != null) {
-            aggregationManager.updateZoom(zoom);
+            aggregationManager.updateZoom(zoom, locations.values(), context);
 
             // remove points outside screen
             for (Iterator<Map.Entry<Long, LocationRecord>> it = locations.entrySet().iterator(); it.hasNext(); ) {

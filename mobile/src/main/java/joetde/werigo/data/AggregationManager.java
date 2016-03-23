@@ -1,5 +1,6 @@
 package joetde.werigo.data;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,24 +9,31 @@ import joetde.werigo.display.CircleCreator;
 import static joetde.werigo.Constants.METERS_IN_A_DEGREE;
 
 public class AggregationManager {
-    private static final double AGGREGATION_LEVEL = 300 / METERS_IN_A_DEGREE;
+    private static final int MINIMAL_AGGREGATION_ZOOM = 16;
 
     private int zoom;
     private Map<String, AggregatedLocationRecord> aggregatedLocations = new HashMap<>(); // aggr lat:lng -> location
 
-    public void updateZoom(double zoom) {
-        if ((int)zoom != this.zoom) {
-            // clean aggregated points
-            // update aggregation constants
-            this.zoom = (int) zoom;
+    public void updateZoom(double zoom, Collection<LocationRecord> records, CircleCreator circleCreator) {
+        int newZoom = Math.min(MINIMAL_AGGREGATION_ZOOM, (int) zoom);
+        if (newZoom != this.zoom) {
+            this.zoom = newZoom;
+            clearAggregation();
+            reloadAll(records, circleCreator);
         }
     }
 
-    public void remove(LocationRecord lr) {
-        String key = getLocationAggregationKey(lr);
-        if (!aggregatedLocations.containsKey(key)) {
-            return;
+    private void clearAggregation() {
+        for (Map.Entry<String, AggregatedLocationRecord> entry : aggregatedLocations.entrySet()) {
+            entry.getValue().getCircle().remove();
         }
+        aggregatedLocations.clear();
+    }
+
+    public void remove(LocationRecord lr) {
+        String key = getLocationAggregationKey(lr, zoom);
+        if (!aggregatedLocations.containsKey(key)) { return; }
+
         AggregatedLocationRecord alr = aggregatedLocations.get(key);
         alr.removePoint(lr);
         if (alr.getNbAggregatedPoints() == 0) {
@@ -35,9 +43,10 @@ public class AggregationManager {
     }
 
     public void add(LocationRecord lr, CircleCreator circleCreator) {
-        String key = getLocationAggregationKey(lr);
+        String key = getLocationAggregationKey(lr, zoom);
         if (!aggregatedLocations.containsKey(key)) {
             AggregatedLocationRecord newAlr = new AggregatedLocationRecord();
+            newAlr.setRadius(getAggregationLevelInMeters(zoom));
             newAlr.setCircle(circleCreator.createAndSetCircle());
             aggregatedLocations.put(key, newAlr);
         }
@@ -45,9 +54,25 @@ public class AggregationManager {
         alr.addPoint(lr);
     }
 
-    private String getLocationAggregationKey(LocationRecord lr) {
-        long latAggr = (long) (lr.getLatitude() / AGGREGATION_LEVEL);
-        long lngAggr = (long) (lr.getLongitude() / AGGREGATION_LEVEL);
+    private void reloadAll(Collection<LocationRecord> records, CircleCreator circleCreator) {
+        for (LocationRecord lr : records) {
+            add(lr, circleCreator);
+        }
+    }
+
+    private static double getAggregationLevelInMeters(int zoom) {
+        double zoomDiff = (MINIMAL_AGGREGATION_ZOOM - zoom);
+        return 20 * Math.pow(2, zoomDiff);
+    }
+
+    private static double getAggregationLevelInDegrees(int zoom) {
+        return getAggregationLevelInMeters(zoom) / METERS_IN_A_DEGREE;
+    }
+
+    private static String getLocationAggregationKey(LocationRecord lr, int zoom) {
+        double aggregationLevel = getAggregationLevelInDegrees(zoom);
+        long latAggr = (long) (lr.getLatitude() / aggregationLevel);
+        long lngAggr = (long) (lr.getLongitude() / aggregationLevel);
         return String.format("%s:%s", latAggr, lngAggr);
     }
 }

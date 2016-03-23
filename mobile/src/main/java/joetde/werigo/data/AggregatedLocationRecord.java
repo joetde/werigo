@@ -6,12 +6,14 @@ import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.LatLng;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import static joetde.werigo.Constants.LOCATION_HEAT_RGB;
 
 public class AggregatedLocationRecord {
     private double latitude;
     private double longitude;
+    @Setter private double radius;
     @Getter private long nbAggregatedPoints = 0;
     @Getter private transient Circle circle = null;
 
@@ -40,13 +42,9 @@ public class AggregatedLocationRecord {
     private void refreshDisplay() {
         if (circle != null) {
             circle.setCenter(new LatLng(latitude, longitude));
-            circle.setRadius(getRadius());
+            circle.setRadius(radius);
             circle.setFillColor(getColor());
         }
-    }
-
-    private double getRadius() {
-        return 150;
     }
 
     private int getColor() {
