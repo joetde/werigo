@@ -27,7 +27,6 @@ public class AggregatedLocationRecord {
             latitude = lr.getLatitude();
             longitude = lr.getLongitude();
         } else {
-            // TODO ponderate with new point
             latitude = (nbAggregatedPoints * latitude + lr.getLatitude() * (lr.getMerges()+1)) / (nbAggregatedPoints + lr.getMerges() + 1);
             longitude = (nbAggregatedPoints * longitude + lr.getLongitude() * (lr.getMerges()+1)) / (nbAggregatedPoints + lr.getMerges() + 1);
         }

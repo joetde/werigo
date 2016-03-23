@@ -74,15 +74,9 @@ public class AggregationManager {
         }
     }
 
-    private void refreshAll() {
-        for (Map.Entry<String, AggregatedLocationRecord> entry : aggregatedLocations.entrySet()) {
-            entry.getValue().refreshDisplay();
-        }
-    }
-
     private static double getAggregationLevelInMeters(int zoom) {
         double zoomDiff = (MINIMAL_AGGREGATION_ZOOM - zoom);
-        return 20 * Math.pow(2, zoomDiff);
+        return 20 * Math.pow(1.85, zoomDiff);
     }
 
     private static double getAggregationLevelInDegrees(int zoom) {

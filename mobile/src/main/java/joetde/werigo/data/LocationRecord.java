@@ -1,24 +1,17 @@
 package joetde.werigo.data;
 
-import android.graphics.Color;
-
-import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import static joetde.werigo.Constants.LOCATION_HEAT_RGB;
-import static joetde.werigo.Constants.MIN_ACCURACY_TO_RECORD;
-import static joetde.werigo.Constants.MIN_DISLAY_RADIUS;
 import static joetde.werigo.Constants.SIMILARITY_IN_SPACE_DEGREE;
 
 @Data
 @Slf4j
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(suppressConstructorProperties = true)
 public class LocationRecord {
 
     private long id;
@@ -27,22 +20,12 @@ public class LocationRecord {
     private double accuracy;
     private long timestamp;
     private int merges = 0;
-    private transient Circle circle = null;
 
     public LocationRecord(double latitude, double longitude, double accuracy, long timestamp) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.accuracy = accuracy;
         this.timestamp = timestamp;
-    }
-
-    public LocationRecord(long id, double latitude, double longitude, double accuracy, long timestamp, int merges) {
-        this(id, latitude, longitude, accuracy, timestamp, merges, null);
-    }
-
-    public void setCircle(Circle circle) {
-        this.circle = circle;
-        refreshDisplay();
     }
 
     /**
@@ -52,7 +35,6 @@ public class LocationRecord {
     public void dedupe(LocationRecord lr) {
         log.debug("Deduping");
         improveAccuracy(lr);
-        refreshDisplay();
     }
 
     /**
@@ -64,7 +46,6 @@ public class LocationRecord {
         improveAccuracy(lr);
         timestamp = lr.getTimestamp();
         merges++;
-        refreshDisplay();
     }
 
     /**
@@ -77,14 +58,6 @@ public class LocationRecord {
             accuracy = lr.getAccuracy();
             latitude = (latitude + lr.getLatitude()) / 2;
             longitude = (longitude + lr.getLongitude()) / 2;
-        }
-    }
-
-    private void refreshDisplay() {
-        if (circle != null) {
-            circle.setCenter(new LatLng(latitude, longitude));
-            circle.setRadius(accuracy < MIN_DISLAY_RADIUS ? MIN_DISLAY_RADIUS : accuracy);
-            circle.setFillColor(getColor());
         }
     }
 
@@ -129,22 +102,5 @@ public class LocationRecord {
                         Math.sin(dLng / 2) * Math.sin(dLng / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return earthRadius * c;
-    }
-
-    /**
-     * Get alpha to display from the accuracy
-     * @return alpha color
-     */
-    private int getAlpha() {
-        return (int)(60 + 125 * (1-getAccuracy()/MIN_ACCURACY_TO_RECORD));
-    }
-
-    /**
-     * Get the color to use for the given point
-     * @return color of the point
-     */
-    private int getColor() {
-        int colorSet = Math.min(merges, 4);
-        return Color.argb(getAlpha(), LOCATION_HEAT_RGB[colorSet][0], LOCATION_HEAT_RGB[colorSet][1], LOCATION_HEAT_RGB[colorSet][2]);
     }
 }
