@@ -2,7 +2,9 @@ package joetde.werigo.data;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import joetde.werigo.display.CircleCreator;
 
@@ -13,6 +15,17 @@ public class AggregationManager {
 
     private int zoom;
     private Map<String, AggregatedLocationRecord> aggregatedLocations = new HashMap<>(); // aggr lat:lng -> location
+    private Set<AggregatedLocationRecord> buffer = new HashSet<>(); // buffer for display
+
+    public void startBuffering() {
+        buffer.clear();
+    }
+
+    public void refreshBuffer() {
+        for (AggregatedLocationRecord alr : buffer) {
+            alr.refreshDisplay();
+        }
+    }
 
     public void updateZoom(double zoom, Collection<LocationRecord> records, CircleCreator circleCreator) {
         int newZoom = Math.min(MINIMAL_AGGREGATION_ZOOM, (int) zoom);
@@ -52,11 +65,18 @@ public class AggregationManager {
         }
         AggregatedLocationRecord alr = aggregatedLocations.get(key);
         alr.addPoint(lr);
+        buffer.add(alr);
     }
 
     private void reloadAll(Collection<LocationRecord> records, CircleCreator circleCreator) {
         for (LocationRecord lr : records) {
             add(lr, circleCreator);
+        }
+    }
+
+    private void refreshAll() {
+        for (Map.Entry<String, AggregatedLocationRecord> entry : aggregatedLocations.entrySet()) {
+            entry.getValue().refreshDisplay();
         }
     }
 

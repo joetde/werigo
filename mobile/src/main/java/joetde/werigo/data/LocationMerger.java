@@ -75,6 +75,7 @@ public class LocationMerger {
 
     public void refreshLocations(LatLngBounds bounds, float zoom) {
         if (context != null) {
+            aggregationManager.startBuffering();
             aggregationManager.updateZoom(zoom, locations.values(), context);
 
             // remove points outside screen
@@ -96,6 +97,7 @@ public class LocationMerger {
                     locations.put(lr.getId(), lr);
                 }
             }
+            aggregationManager.refreshBuffer();
         }
     }
 }

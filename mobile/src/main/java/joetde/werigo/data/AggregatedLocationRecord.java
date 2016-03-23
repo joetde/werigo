@@ -32,14 +32,13 @@ public class AggregatedLocationRecord {
             longitude = (nbAggregatedPoints * longitude + lr.getLongitude() * (lr.getMerges()+1)) / (nbAggregatedPoints + lr.getMerges() + 1);
         }
         nbAggregatedPoints += lr.getMerges() + 1;
-        refreshDisplay();
     }
 
     public void removePoint(LocationRecord lr) {
         nbAggregatedPoints -= lr.getMerges() + 1;
     }
 
-    private void refreshDisplay() {
+    public void refreshDisplay() {
         if (circle != null) {
             circle.setCenter(new LatLng(latitude, longitude));
             circle.setRadius(radius);
