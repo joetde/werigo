@@ -31,21 +31,24 @@ public class LocationMerger {
 
         List<LocationRecord> locationsInRange = dataSource.loadLocations(newRecord.getBounds());
         LocationRecord closestRecordInRange = getClosestRecordsInRange(locationsInRange, newRecord);
+
+        // point already exist
         if (closestRecordInRange != null) {
             if (closestRecordInRange.delay(newRecord) < SIMILIRARITY_IN_TIME) {
                 closestRecordInRange.dedupe(newRecord);
-                dataSource.updateLocation(closestRecordInRange);
-                return false;
             } else {
                 closestRecordInRange.merge(newRecord);
-                dataSource.updateLocation(closestRecordInRange);
-                return false;
             }
+            aggregationManager.updateDisplay(newRecord);
+            dataSource.updateLocation(closestRecordInRange);
+            return false;
         }
 
+        // new location
         dataSource.writeNewLocation(newRecord);
         locations.put(newRecord.getId(), newRecord);
         aggregationManager.add(newRecord, context);
+        aggregationManager.updateDisplay(newRecord);
         return true;
     }
 
@@ -82,7 +85,6 @@ public class LocationMerger {
             for (Iterator<Map.Entry<Long, LocationRecord>> it = locations.entrySet().iterator(); it.hasNext(); ) {
                 Map.Entry<Long, LocationRecord> entry = it.next();
                 if (!bounds.contains(new LatLng(entry.getValue().getLatitude(), entry.getValue().getLongitude()))) {
-                    //entry.getValue().getCircle().remove();
                     aggregationManager.remove(entry.getValue());
                     it.remove();
                 }
@@ -92,7 +94,6 @@ public class LocationMerger {
             List<LocationRecord> newLocations = dataSource.loadLocations(bounds);
             for (LocationRecord lr : newLocations) {
                 if (!locations.containsKey(lr.getId())) {
-                    //lr.setCircle(context.createAndSetCircle());
                     aggregationManager.add(lr, context);
                     locations.put(lr.getId(), lr);
                 }

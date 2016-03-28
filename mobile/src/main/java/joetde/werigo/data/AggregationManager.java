@@ -68,6 +68,12 @@ public class AggregationManager {
         buffer.add(alr);
     }
 
+    public void updateDisplay(LocationRecord lr) {
+        String key = getLocationAggregationKey(lr, zoom);
+        AggregatedLocationRecord alr = aggregatedLocations.get(key);
+        alr.refreshDisplay();
+    }
+
     private void reloadAll(Collection<LocationRecord> records, CircleCreator circleCreator) {
         for (LocationRecord lr : records) {
             add(lr, circleCreator);
