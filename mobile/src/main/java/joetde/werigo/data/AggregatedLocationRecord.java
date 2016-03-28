@@ -46,7 +46,7 @@ public class AggregatedLocationRecord {
     }
 
     private int getColor() {
-        int colorSet = Math.min((int) nbAggregatedPoints / (int)(radius / 20), 4);
+        int colorSet = Math.min((int) nbAggregatedPoints / (int)(2 * radius / 20), 4);
         return Color.argb(125, LOCATION_HEAT_RGB[colorSet][0], LOCATION_HEAT_RGB[colorSet][1], LOCATION_HEAT_RGB[colorSet][2]);
     }
 }
