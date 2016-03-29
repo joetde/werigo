@@ -1,6 +1,8 @@
 package joetde.werigo.data;
 
+import android.content.Context;
 import android.location.Location;
+import android.os.Vibrator;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -16,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import static joetde.werigo.Constants.SIMILARITY_IN_SPACE;
 import static joetde.werigo.Constants.SIMILIRARITY_IN_TIME;
+import static joetde.werigo.Constants.MIN_DISLAY_RADIUS;
 
 @Slf4j
 public class LocationMerger {
@@ -50,6 +53,26 @@ public class LocationMerger {
         aggregationManager.add(newRecord, context);
         aggregationManager.updateDisplay(newRecord);
         return true;
+    }
+
+    public void longClick(LatLng latLng) {
+        List<LocationRecord> targetedRecords = aggregationManager.getSameAs(latLng, locations.values());
+        log.info("Long click: found {} items", targetedRecords.size());
+
+        // Vibrate!
+        Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        v.vibrate(30);
+
+        if (targetedRecords.isEmpty()) {
+            // TODO ask to add
+            LocationRecord newRecord = new LocationRecord(latLng.latitude, latLng.longitude, MIN_DISLAY_RADIUS, System.currentTimeMillis());
+            dataSource.writeNewLocation(newRecord);
+            locations.put(newRecord.getId(), newRecord);
+            aggregationManager.add(newRecord, context);
+            aggregationManager.updateDisplay(newRecord);
+        } else {
+            // TODO ask to suppress and suppress (give the number of points that will be deleted)
+        }
     }
 
     /**
