@@ -1,6 +1,8 @@
 package joetde.werigo.data;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.location.Location;
 import android.os.Vibrator;
 
@@ -16,9 +18,9 @@ import joetde.werigo.MapsActivity;
 import joetde.werigo.datasource.LocationRecordDataSource;
 import lombok.extern.slf4j.Slf4j;
 
+import static joetde.werigo.Constants.MIN_DISLAY_RADIUS;
 import static joetde.werigo.Constants.SIMILARITY_IN_SPACE;
 import static joetde.werigo.Constants.SIMILIRARITY_IN_TIME;
-import static joetde.werigo.Constants.MIN_DISLAY_RADIUS;
 
 @Slf4j
 public class LocationMerger {
@@ -71,15 +73,38 @@ public class LocationMerger {
         v.vibrate(30);
 
         if (closest == null) {
-            // TODO ask to add
-            addRecordToMerge(newRecord);
+            yesNoDialogCreateOrDelete("Create new point?", newRecord, false);
         } else {
-            // TODO ask to suppress and suppress (give the number of points that will be deleted)
-            dataSource.delete(closest);
-            locations.remove(closest.getId());
-            aggregationManager.kill(closest);
-            aggregationManager.updateDisplay(closest);
+            yesNoDialogCreateOrDelete("Delete selected point?", closest, true);
         }
+    }
+
+    private void yesNoDialogCreateOrDelete(String text, final LocationRecord lr, final boolean delete) {
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        if (!delete) {
+                            addRecordToMerge(lr);
+                        } else {
+                            dataSource.delete(lr);
+                            locations.remove(lr.getId());
+                            aggregationManager.kill(lr);
+                            aggregationManager.updateDisplay(lr);
+                        }
+                        break;
+
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        // nothing to do, user refused to perform the action
+                        break;
+                }
+            }
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage(text).setPositiveButton("Yes", dialogClickListener)
+                .setNegativeButton("No", dialogClickListener).show();
     }
 
     /**
