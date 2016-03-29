@@ -4,7 +4,8 @@ Small application to accumulate the locations and paths you went.
 
 Features:
 - The more you pass on a given location, the hotter the color will be. Let __12 hours__ for the app to consider you passed on the same location, otherwise the location is just ignored.
-- Will start to consider points for a minimum accuracy of __30 meters__, if your GPS go a bit crazy, the location won't be recorded. 
+- Will start to consider points for a minimum accuracy of __30 meters__, if your GPS go a bit crazy, the location won't be recorded.
+- Long press on the map will add a new point, if the point already exist, it will be removed.
 
 Limitations:
 - Uses Google Maps free API which is limited to 1000 accesses per day.
