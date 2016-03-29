@@ -59,6 +59,14 @@ public class AggregationManager {
         }
     }
 
+    public void kill(LocationRecord lr) {
+        String key = getLocationAggregationKey(lr, zoom);
+        if (!aggregatedLocations.containsKey(key)) { return; }
+        AggregatedLocationRecord alr = aggregatedLocations.get(key);
+        alr.getCircle().remove();
+        aggregatedLocations.remove(key);
+    }
+
     public void add(LocationRecord lr, CircleCreator circleCreator) {
         String key = getLocationAggregationKey(lr, zoom);
         if (!aggregatedLocations.containsKey(key)) {

@@ -28,50 +28,57 @@ public class LocationMerger {
     private AggregationManager aggregationManager = new AggregationManager();
 
     public boolean addLocationToMerge(Location location) {
-
         LocationRecord newRecord = new LocationRecord(location.getLatitude(),
                 location.getLongitude(), location.getAccuracy(), System.currentTimeMillis());
+        return addRecordToMerge(newRecord);
+    }
 
-        List<LocationRecord> locationsInRange = dataSource.loadLocations(newRecord.getBounds());
-        LocationRecord closestRecordInRange = getClosestRecordsInRange(locationsInRange, newRecord);
+    private boolean addRecordToMerge(LocationRecord lr) {
+        LocationRecord closestRecordInRange = getClosestInRange(lr);
 
         // point already exist
         if (closestRecordInRange != null) {
-            if (closestRecordInRange.delay(newRecord) < SIMILIRARITY_IN_TIME) {
-                closestRecordInRange.dedupe(newRecord);
+            if (closestRecordInRange.delay(lr) < SIMILIRARITY_IN_TIME) {
+                closestRecordInRange.dedupe(lr);
             } else {
-                closestRecordInRange.merge(newRecord);
+                closestRecordInRange.merge(lr);
             }
-            aggregationManager.updateDisplay(newRecord);
+            aggregationManager.updateDisplay(lr);
             dataSource.updateLocation(closestRecordInRange);
             return false;
         }
 
         // new location
-        dataSource.writeNewLocation(newRecord);
-        locations.put(newRecord.getId(), newRecord);
-        aggregationManager.add(newRecord, context);
-        aggregationManager.updateDisplay(newRecord);
+        dataSource.writeNewLocation(lr);
+        locations.put(lr.getId(), lr);
+        aggregationManager.add(lr, context);
+        aggregationManager.updateDisplay(lr);
         return true;
     }
 
+    private LocationRecord getClosestInRange(LocationRecord lr) {
+        List<LocationRecord> locationsInRange = dataSource.loadLocations(lr.getBounds());
+        return getClosestRecordsInRange(locationsInRange, lr);
+    }
+
     public void longClick(LatLng latLng) {
-        List<LocationRecord> targetedRecords = aggregationManager.getSameAs(latLng, locations.values());
-        log.info("Long click: found {} items", targetedRecords.size());
+        LocationRecord newRecord = new LocationRecord(latLng.latitude, latLng.longitude, MIN_DISLAY_RADIUS, System.currentTimeMillis());
+        LocationRecord closest = getClosestInRange(newRecord);
+        log.info("Long click: found {}", closest);
 
         // Vibrate!
         Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
         v.vibrate(30);
 
-        if (targetedRecords.isEmpty()) {
+        if (closest == null) {
             // TODO ask to add
-            LocationRecord newRecord = new LocationRecord(latLng.latitude, latLng.longitude, MIN_DISLAY_RADIUS, System.currentTimeMillis());
-            dataSource.writeNewLocation(newRecord);
-            locations.put(newRecord.getId(), newRecord);
-            aggregationManager.add(newRecord, context);
-            aggregationManager.updateDisplay(newRecord);
+            addRecordToMerge(newRecord);
         } else {
             // TODO ask to suppress and suppress (give the number of points that will be deleted)
+            dataSource.delete(closest);
+            locations.remove(closest.getId());
+            aggregationManager.kill(closest);
+            aggregationManager.updateDisplay(closest);
         }
     }
 

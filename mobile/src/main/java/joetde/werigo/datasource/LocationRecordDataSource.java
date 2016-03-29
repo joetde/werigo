@@ -101,6 +101,12 @@ public class LocationRecordDataSource extends SQLiteOpenHelper {
                              Double.toString(bounds.northeast.longitude)});
     }
 
+    public void delete(LocationRecord lr) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.delete(LocationRecordEntry.TABLE_NAME,
+                  LocationRecordEntry._ID + " = " + lr.getId(), null);
+    }
+
     private static abstract class LocationRecordEntry implements BaseColumns {
         public static final String TABLE_NAME = "LocationRecords";
         public static final String COLUMN_NAME_LATITUDE = "latitude";
