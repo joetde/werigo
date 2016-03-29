@@ -1,8 +1,12 @@
 package joetde.werigo.data;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -71,7 +75,22 @@ public class AggregationManager {
     public void updateDisplay(LocationRecord lr) {
         String key = getLocationAggregationKey(lr, zoom);
         AggregatedLocationRecord alr = aggregatedLocations.get(key);
-        alr.refreshDisplay();
+
+        // If not in screen, there's no aggregate to update
+        if (alr != null) {
+            alr.refreshDisplay();
+        }
+    }
+
+    public List<LocationRecord> getSameAs(LatLng latLng, Collection<LocationRecord> locationRecords) {
+        List<LocationRecord> records = new LinkedList<>();
+        String originKey = getLocationAggregationKey(latLng, zoom);
+        for (LocationRecord r : locationRecords) {
+            if (getLocationAggregationKey(r, zoom).equals(originKey)) {
+                records.add(r);
+            }
+        }
+        return records;
     }
 
     private void reloadAll(Collection<LocationRecord> records, CircleCreator circleCreator) {
@@ -90,9 +109,17 @@ public class AggregationManager {
     }
 
     private static String getLocationAggregationKey(LocationRecord lr, int zoom) {
+        return getLocationAggregationKey(lr.getLatitude(), lr.getLongitude(), zoom);
+    }
+
+    private static String getLocationAggregationKey(LatLng latLng, int zoom) {
+        return getLocationAggregationKey(latLng.latitude, latLng.longitude, zoom);
+    }
+
+    private static String getLocationAggregationKey(double latitude, double longitude, int zoom) {
         double aggregationLevel = getAggregationLevelInDegrees(zoom);
-        long latAggr = (long) (lr.getLatitude() / aggregationLevel);
-        long lngAggr = (long) (lr.getLongitude() / aggregationLevel);
+        long latAggr = (long) (latitude / aggregationLevel);
+        long lngAggr = (long) (longitude / aggregationLevel);
         return String.format("%s:%s", latAggr, lngAggr);
     }
 }

@@ -24,7 +24,11 @@ import lombok.extern.slf4j.Slf4j;
 import static joetde.werigo.Constants.*;
 
 @Slf4j
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnCameraChangeListener, CircleCreator {
+public class MapsActivity extends FragmentActivity
+        implements OnMapReadyCallback,
+                   GoogleMap.OnCameraChangeListener,
+                   GoogleMap.OnMapLongClickListener,
+                   CircleCreator {
 
     @Getter private LatLngBounds cameraBounds;
     private GoogleMap map;
@@ -94,9 +98,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
+    public void onMapLongClick(LatLng latLng) {
+        locationMerger.longClick(latLng);
+    }
+
+    @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
         map.setOnCameraChangeListener(this);
+        map.setOnMapLongClickListener(this);
         map.setMyLocationEnabled(true);
     }
 
