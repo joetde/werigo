@@ -1,6 +1,7 @@
 package joetde.werigo;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
@@ -10,6 +11,7 @@ import android.location.LocationManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -53,13 +55,13 @@ public class MapsActivity extends FragmentActivity
     }
 
     private void havePermissionsOrDie() {
-        int hasWriteContactsPermission = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION);
+        int hasWriteContactsPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
-            if (!shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
+            if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
                 showMessageGetPermissionsOrGoToHell();
                 return;
             }
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PREM_CODE);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PREM_CODE);
             return;
         }
 
@@ -67,11 +69,12 @@ public class MapsActivity extends FragmentActivity
     }
 
     private void showMessageGetPermissionsOrGoToHell() {
+        final Activity me = this;
         new AlertDialog.Builder(this)
             .setMessage("You need location permissions for this application to work.")
             .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialogInterface, int which) {
-                    requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PREM_CODE);
+                    ActivityCompat.requestPermissions(me, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PREM_CODE);
                 }
             })
             .setNegativeButton("Quit app", new DialogInterface.OnClickListener() {
