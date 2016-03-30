@@ -1,8 +1,13 @@
 package joetde.werigo;
 
+import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 
@@ -36,21 +41,74 @@ public class MapsActivity extends FragmentActivity
     private boolean isFirstLocation = true;
 
     private static final LatLng NULL_LATLNG = new LatLng(0,0);
+    private static final int PREM_CODE = 141;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_maps);
+
+        havePermissionsOrDie();
+    }
+
+    private void havePermissionsOrDie() {
+        int hasWriteContactsPermission = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION);
+        if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
+            if (!shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                showMessageGetPermissionsOrGoToHell();
+                return;
+            }
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PREM_CODE);
+            return;
+        }
+
+        startYourWorkBuddy();
+    }
+
+    private void showMessageGetPermissionsOrGoToHell() {
+        new AlertDialog.Builder(this)
+            .setMessage("You need location permissions for this application to work.")
+            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialogInterface, int which) {
+                    requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PREM_CODE);
+                }
+            })
+            .setNegativeButton("Quit app", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialogInterface, int which) {
+                    android.os.Process.killProcess(android.os.Process.myPid());
+                    System.exit(1);
+                }
+            })
+            .create()
+            .show();
+    }
+
+    private void startYourWorkBuddy() {
+        // set UI
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
 
         // configure location engine
         locationMerger.setContextAndLoadDataSource(this);
 
-        // set UI
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
+        // configure maps stuff
         setLocationListener();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case PREM_CODE:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startYourWorkBuddy();
+                } else {
+                    showMessageGetPermissionsOrGoToHell();
+                }
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
     }
 
     private void setLocationListener() {
