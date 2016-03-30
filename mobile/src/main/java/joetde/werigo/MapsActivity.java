@@ -178,7 +178,7 @@ public class MapsActivity extends FragmentActivity
     private CircleOptions createCircle() {
         CircleOptions circle = new CircleOptions();
         circle.center(NULL_LATLNG);
-        circle.strokeWidth(0);
+        circle.strokeWidth(2);
         circle.visible(true);
         return circle;
     }
